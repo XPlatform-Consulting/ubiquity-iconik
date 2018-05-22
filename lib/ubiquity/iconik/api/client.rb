@@ -290,7 +290,7 @@ module  Ubiquity
             {
               :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/files/',
               :parameters => [
-                { :name => :asset_id, :required => true, :send_in => :path },
+                { :name => :asset_id, :aliases => [ :id ], :required => true, :send_in => :path },
               ]
             }.merge(options)
           )
@@ -306,14 +306,48 @@ module  Ubiquity
               :http_success_code => '201',
               :body => args,
               :parameters => [
-                { :name => :asset_id, :required => true, :send_in => :path },
-                { :name => :name, :default_value => 'ORIGINAL' },
-                { :name => :metadata }
+                { :name => :asset_id, :required => true, :send_in => :path }
               ]
             }.merge(options)
           )
           process_request(_request, options)
         end
+
+        def asset_format_get_by_name(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+              args,
+              {
+                  :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/formats/#{path_arguments[:format_name]}/',
+                  :http_method => :get,
+                  :http_success_code => '201',
+                  :body => args,
+                  :parameters => [
+                      { :name => :asset_id, :required => true, :send_in => :path },
+                      { :name => :format_name, :aliases => [ :name ], :send_in => :path }
+                  ]
+              }.merge(options)
+          )
+          process_request(_request, options)
+        end
+
+        def asset_formats_get(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+              args,
+              {
+                  :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/formats/',
+                  :http_method => :get,
+                  :http_success_code => '201',
+                  :body => args,
+                  :parameters => [
+                      { :name => :asset_id, :required => true, :send_in => :path },
+                      { :name => :name, :default_value => 'ORIGINAL' },
+                      { :name => :metadata }
+                  ]
+              }.merge(options)
+          )
+          process_request(_request, options)
+        end
+
 
         def asset_keyframes_get(args = { }, options = { })
 

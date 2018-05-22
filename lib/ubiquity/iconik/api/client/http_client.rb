@@ -1,5 +1,5 @@
 require 'json'
-require 'net/http'
+require 'net/https'
 
 if RUBY_VERSION.start_with?('1.8')
   class Net::HTTP::Patch < Net::HTTPRequest
@@ -31,12 +31,12 @@ module Ubiquity
 
           attr_accessor :app_id, :token, :token_data
 
-          DEFAULT_HTTP_HOST_ADDRESS = 'iconik.dev'
-          DEFAULT_HTTP_HOST_PORT = 80
+          DEFAULT_HTTP_HOST_ADDRESS = 'app.iconik.io'
+          DEFAULT_HTTP_HOST_PORT = 443
 
           DEFAULT_BASE_PATH = '/API/'
 
-          DEFAULT_APP_ID = '22f34c6e-268e-11e7-ac53-6c4008b85488'
+          DEFAULT_APP_ID = ''
 
           DEFAULT_HEADER_CONTENT_TYPE = 'application/json; charset=utf-8'
           DEFAULT_HEADER_ACCEPTS = 'application/json'
@@ -99,9 +99,11 @@ module Ubiquity
             @http_host_port = args[:http_host_port] ||= DEFAULT_HTTP_HOST_PORT
             @http = Net::HTTP.new(http_host_address, http_host_port)
 
-            use_ssl = args[:http_host_use_ssl]
+            use_ssl = args.fetch(:http_host_use_ssl, true)
             if use_ssl
-              # @TODO Add SSL Support
+              @http.use_ssl = true
+              http_verify_mode = args[:http_host_ssl_verify_mode] #|| OpenSSL::SSL::VERIFY_NONE
+              @http.verify_mode = http_verify_mode if http_verify_mode
             end
 
             http
@@ -124,28 +126,6 @@ module Ubiquity
             else
               return obj.body.inspect
             end
-          end
-
-          # Attempts to refresh a token if it is expired
-          def token_fix
-            _token = token.dup
-            _original_client = token.client if token.respond_to?(:client)
-            _original_client ||= request.client if request.respond_to?(:client)
-            return false unless _original_client
-
-            _client = _original_client.dup
-            _client.http_client.use_exceptions = false
-            _token.client = _client
-
-            _token.populate_attributes if _token.attributes_need_to_be_populated?
-            _token.refresh if _token.expired?
-
-            _valid = _token.valid?
-            if _valid
-              _token.client = _original_client
-              @token = _token
-            end
-            _valid
           end
 
           # @param [HTTPRequest] request
@@ -247,7 +227,7 @@ module Ubiquity
 
           def delete(path, options = { })
             query = options.fetch(:query, { })
-            base_path = options[:base_path] || ( path.start_with?('/API') ? '' : @default_base_path )
+            base_path = options[:base_path] || ( path.start_with?(@default_base_path) ? '' : @default_base_path )
             @uri = build_uri(File.join(base_path, path), query)
             request = Net::HTTP::Delete.new(@uri.request_uri, default_request_headers)
             send_request(request)
@@ -260,7 +240,7 @@ module Ubiquity
             _headers = _default_request_headers.merge(headers)
 
             query ||= options.fetch(:query, { })
-            base_path = options[:base_path] || ( path.start_with?('/API') ? '' : @default_base_path )
+            base_path = options[:base_path] || ( path.start_with?(@default_base_path) ? '' : @default_base_path )
             @uri = build_uri(File.join(base_path, path), query)
             request = Net::HTTP::Get.new(@uri.request_uri, _headers)
             send_request(request)
@@ -273,7 +253,7 @@ module Ubiquity
             _headers = _default_request_headers.merge(headers)
 
             query ||= options.fetch(:query, { })
-            base_path = options[:base_path] || ( path.start_with?('/API') ? '' : @default_base_path )
+            base_path = options[:base_path] || ( path.start_with?(@default_base_path) ? '' : @default_base_path )
             @uri = build_uri(File.join(base_path, path), query)
 
             request = Net::HTTP::Head.new(@uri.request_uri, _headers)
@@ -287,7 +267,7 @@ module Ubiquity
             _headers = _default_request_headers.merge(headers)
 
             query ||= options.fetch(:query, { })
-            base_path = options[:base_path] || ( path.start_with?('/API') ? '' : @default_base_path )
+            base_path = options[:base_path] || ( path.start_with?(@default_base_path) ? '' : @default_base_path )
             @uri = build_uri(File.join(base_path, path), query)
             request = Net::HTTP::Options.new(@uri.request_uri, _headers)
             send_request(request)
@@ -300,7 +280,7 @@ module Ubiquity
             _headers = _default_request_headers.merge(headers)
 
             query = options.fetch(:query, { })
-            base_path = options[:base_path] || ( path.start_with?('/API') ? '' : @default_base_path )
+            base_path = options[:base_path] || ( path.start_with?(@default_base_path) ? '' : @default_base_path )
             @uri = build_uri(File.join(base_path, path), query)
             request = Net::HTTP::Put.new(@uri.request_uri, _headers)
 
@@ -317,7 +297,7 @@ module Ubiquity
             _headers = _default_request_headers.merge(headers)
 
             query = options.fetch(:query, { })
-            base_path = options[:base_path] || ( path.start_with?('/API') ? '' : @default_base_path )
+            base_path = options[:base_path] || ( path.start_with?(@default_base_path) ? '' : @default_base_path )
             @uri = build_uri(File.join(base_path, path), query)
 
             request = Net::HTTP::Post.new(@uri.request_uri, _headers)
@@ -328,17 +308,43 @@ module Ubiquity
             send_request(request)
           end
 
-          def token?
-            (@token.respond_to?(:empty?) && !@token.empty?)
-          end
 
           def default_header_auth_set
             @default_request_headers[header_auth_key] = @token.respond_to?(:to_s) ? @token.to_s : @token
           end
 
+          # Determines if token is set
+          def token?
+            (@token.respond_to?(:empty?) && !@token.empty?)
+          end
+
+          # Token setter
           def token=(value)
             @token = value || ''
             default_header_auth_set
+          end
+
+          # Attempts to refresh a token if it is expired
+          # @deprecated
+          def token_fix
+            _token = token.dup
+            _original_client = token.client if token.respond_to?(:client)
+            _original_client ||= request.client if request.respond_to?(:client)
+            return false unless _original_client
+
+            _client = _original_client.dup
+            _client.http_client.use_exceptions = false
+            _token.client = _client
+
+            _token.populate_attributes if _token.attributes_need_to_be_populated?
+            _token.refresh if _token.expired?
+
+            _valid = _token.valid?
+            if _valid
+              _token.client = _original_client
+              @token = _token
+            end
+            _valid
           end
 
           # HTTPClient

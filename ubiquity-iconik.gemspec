@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{A library for interacting with Cantemo's Iconik product.}
   spec.description   = %q{}
-  spec.homepage      = %q{}
+  spec.homepage      = %q{https://github.com/XPlatform-Consulting/ubiquity-iconik}
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
