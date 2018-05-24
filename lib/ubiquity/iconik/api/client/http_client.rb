@@ -74,8 +74,7 @@ module Ubiquity
               'App-ID' => @app_id,
             }
 
-            _token = args[:token] || ''
-            self.token = _token
+            self.token = args[:token] || ''
 
             @log_request_body = args.fetch(:log_request_body, true)
             @log_response_body = args.fetch(:log_response_body, true)
@@ -147,11 +146,6 @@ module Ubiquity
 
           rescue => e
             raise if @retry_count >= @max_retry_count
-
-            if e.is_a?(HTTPAuthorizationError) && token.respond_to?(:valid?) && !token.valid?
-              logger.debug { 'Invalid Token. Attempting to correct.' }
-              token_fix
-            end
 
             @retry_count += 1
             logger.warn { "Retrying request. Attempt #{@retry_count} '#{e.message}'" }
@@ -322,29 +316,6 @@ module Ubiquity
           def token=(value)
             @token = value || ''
             default_header_auth_set
-          end
-
-          # Attempts to refresh a token if it is expired
-          # @deprecated
-          def token_fix
-            _token = token.dup
-            _original_client = token.client if token.respond_to?(:client)
-            _original_client ||= request.client if request.respond_to?(:client)
-            return false unless _original_client
-
-            _client = _original_client.dup
-            _client.http_client.use_exceptions = false
-            _token.client = _client
-
-            _token.populate_attributes if _token.attributes_need_to_be_populated?
-            _token.refresh if _token.expired?
-
-            _valid = _token.valid?
-            if _valid
-              _token.client = _original_client
-              @token = _token
-            end
-            _valid
           end
 
           # HTTPClient
