@@ -2,7 +2,6 @@ require 'logger'
 require 'date'
 require 'yaml'
 
-require 'ubiquity/iconik/api/client/token'
 require 'ubiquity/iconik/api/client/http_client'
 require 'ubiquity/iconik/api/client/requests'
 require 'ubiquity/iconik/api/client/paginator'
@@ -15,54 +14,9 @@ module  Ubiquity
         attr_accessor :http_client, :request, :response, :logger
 
         def initialize(args = { })
-          _token_cache = args.fetch(:token_cache_allow, false)
-
-          _token = args[:token] || _token_cache ? token_cache_read(args) : nil
-          args[:token] = _token.is_a?(String) ? Token.new(_token, self) : _token if _token
-
           @http_client = HTTPClient.new(args)
           @logger = http_client.logger
 
-          unless _token
-            _do_login = args.fetch(:do_login, true)
-            login_and_set_token(args) if _do_login
-            token_cache_write(args) if _token_cache
-          end
-        end
-
-        def token_cache_read(args)
-          _token_path = args[:token_cache_path] || '_token.yaml'
-          _token_path = File.expand_path(_token_path)
-          _token = File.exists?(_token_path) ? YAML.load_file(_token_path) : nil
-          if _token.respond_to?(:valid?)
-            _token.expiration_date_time_set
-            _token.client = self
-            _token = nil unless _token.valid?
-          end
-
-          _token
-        end
-
-        def token_cache_write(args)
-          _token = (token.respond_to?(:valid?) && token.valid?) ? token : nil
-          _token_path = args[:token_cache_path] || '_token.yaml'
-          _token_path = File.expand_path(_token_path)
-          logger.debug { "Writing Token Cache - '#{_token_path}'" }
-          File.open(_token_path, 'w') { |f| f.write(YAML.dump(_token)) }
-        end
-
-        def login_and_set_token(args)
-          _credentials = args[:credentials] || args
-          _username = _credentials[:email] || _credentials[:username]
-          _password = _credentials[:password]
-          if _username && _password
-            _credentials[:email] ||= _username
-            token_data = auth_login_simple(_credentials)
-            self.token = token_data
-            _cache_token = args[:cache_token]
-            _token_path = _cache_token.is_a?(String) ? _cache_token : '_token.yaml'
-
-          end
         end
 
         # Exposes HTTP Methods
@@ -415,12 +369,14 @@ module  Ubiquity
           process_request(_request, options)
         end
 
+        # @deprecated
         def auth_token_get(args = { }, options = { })
           _token = args[:token] || token
           _token = token.to_s if _token.respond_to?(:to_s)
           http(:get, 'auth/v1/auth/token/', { :headers => { http_client.header_auth_key => _token } })
         end
 
+        # @deprecated
         def auth_token_refresh(args = { }, options = { })
           http(:put, 'auth/v1/auth/token/')
         end
@@ -619,19 +575,7 @@ module  Ubiquity
         end
 
         def token=(token_data)
-          http_client.token = Token.new(token_data, self)
-
-          # if token_data.is_a?(String)
-          #   _token = token_data
-          #   _token_data = { 'token' => _token }
-          #   # http_client.token = _token
-          #   # _token_data = auth_token_get
-          # else
-          #   _token_data = token_data
-          # end
-
-          # http_client.token_data = _token_data
-
+          http_client.token = token_data
         end
 
         def transcode(args = { }, options = { })
