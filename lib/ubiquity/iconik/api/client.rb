@@ -162,6 +162,19 @@ module  Ubiquity
           process_request(_request, options)
         end
 
+        def asset_download_url_get(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+              args,
+            {
+              :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/files/#{path_arguments[:file_id]}/download_url/',
+              :parameters => [
+                { :name => :asset_id, :aliases => [ :id ], :required => true, :send_in => :path },
+                { :name => :file_id, :required => true, :send_in => :path }
+              ]
+            }.merge(options)
+          )
+          process_request(_request, options)
+        end
 
         def asset_file_create(args = { }, options = { })
           _request = Requests::BaseRequest.new(
@@ -177,6 +190,23 @@ module  Ubiquity
                 { :name => :file_set_id, :required => true },
                 { :name => :file_date_create, :required => true },
                 { :name => :file_date_modified, :required => true },
+              ]
+            }.merge(options)
+          )
+          process_request(_request, options)
+        end
+
+        def asset_file_get(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+            args,
+            {
+              :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/files/#{path_arguments[:file_id]}/',
+              :http_method => :get,
+              :http_success_code => '200',
+              :body => args,
+              :parameters => [
+                { :name => :asset_id, :required => true, :send_in => :path },
+                { :name => :file_id, :aliases => [ :id ], :send_in => :path }
               ]
             }.merge(options)
           )
@@ -245,6 +275,7 @@ module  Ubiquity
               :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/files/',
               :parameters => [
                 { :name => :asset_id, :aliases => [ :id ], :required => true, :send_in => :path },
+                { :name => :generate_signed_url, :send_in => :query }
               ]
             }.merge(options)
           )
@@ -267,37 +298,71 @@ module  Ubiquity
           process_request(_request, options)
         end
 
+        def asset_format_file_sets_get(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+            args,
+            {
+              :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/formats/#{path_arguments[:format_id]}/file_sets/',
+              :http_method => :get,
+              :http_success_code => '200',
+              :body => args,
+              :parameters => [
+                { :name => :asset_id, :required => true, :send_in => :path },
+                { :name => :format_id, :aliases => [ :id ], :send_in => :path }
+              ]
+            }.merge(options)
+          )
+          process_request(_request, options)
+        end
+
+        def asset_format_file_sets_sources_get(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+            args,
+            {
+              :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/formats/#{path_arguments[:format_id]}/file_sets/sources/',
+              :http_method => :get,
+              :http_success_code => '200',
+              :body => args,
+              :parameters => [
+                { :name => :asset_id, :required => true, :send_in => :path },
+                { :name => :format_id, :aliases => [ :id ], :send_in => :path }
+              ]
+            }.merge(options)
+          )
+          process_request(_request, options)
+        end
+
         def asset_format_get_by_name(args = { }, options = { })
           _request = Requests::BaseRequest.new(
-              args,
-              {
-                  :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/formats/#{path_arguments[:format_name]}/',
-                  :http_method => :get,
-                  :http_success_code => '201',
-                  :body => args,
-                  :parameters => [
-                      { :name => :asset_id, :required => true, :send_in => :path },
-                      { :name => :format_name, :aliases => [ :name ], :send_in => :path }
-                  ]
-              }.merge(options)
+            args,
+            {
+              :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/formats/#{path_arguments[:format_name]}/',
+              :http_method => :get,
+              :http_success_code => '200',
+              :body => args,
+              :parameters => [
+                  { :name => :asset_id, :required => true, :send_in => :path },
+                  { :name => :format_name, :aliases => [ :name ], :send_in => :path }
+              ]
+            }.merge(options)
           )
           process_request(_request, options)
         end
 
         def asset_formats_get(args = { }, options = { })
           _request = Requests::BaseRequest.new(
-              args,
-              {
-                  :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/formats/',
-                  :http_method => :get,
-                  :http_success_code => '201',
-                  :body => args,
-                  :parameters => [
-                      { :name => :asset_id, :required => true, :send_in => :path },
-                      { :name => :name, :default_value => 'ORIGINAL' },
-                      { :name => :metadata }
-                  ]
-              }.merge(options)
+            args,
+            {
+              :http_path => 'files/v1/assets/#{path_arguments[:asset_id]}/formats/',
+              :http_method => :get,
+              :http_success_code => '200',
+              :body => args,
+              :parameters => [
+                { :name => :asset_id, :required => true, :send_in => :path },
+                { :name => :name, :default_value => 'ORIGINAL' },
+                { :name => :metadata }
+              ]
+            }.merge(options)
           )
           process_request(_request, options)
         end
@@ -517,6 +582,19 @@ module  Ubiquity
 
         def collections_reindex(args = { }, options = { })
           http(:post, 'assets/collections/reindex/')
+        end
+
+        def file_set_files_get(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+            args,
+            {
+              :http_path => 'files/v1/file_sets/#{path_arguments[:file_set_id]}/files/',
+              :parameters => [
+                { :name => :file_set_id, :aliases => [ :id ], :send_in => :path },
+              ]
+            }.merge(options)
+          )
+          process_request(_request, options)
         end
 
         def metadata_field_create(args = { }, options = { })
