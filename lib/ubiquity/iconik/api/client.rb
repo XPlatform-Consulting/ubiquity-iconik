@@ -291,7 +291,9 @@ module  Ubiquity
               :http_success_code => '201',
               :body => args,
               :parameters => [
-                { :name => :asset_id, :required => true, :send_in => :path }
+                { :name => :asset_id, :required => true, :send_in => :path },
+                { :name => :name, :default_value => 'ORIGINAL' },
+                { :name => :metadata }
               ]
             }.merge(options)
           )
