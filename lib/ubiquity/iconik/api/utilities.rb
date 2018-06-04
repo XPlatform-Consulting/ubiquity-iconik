@@ -27,6 +27,12 @@ module Ubiquity
         end
 
         # @param [Object]  args
+        # @option args [Boolean] :create_keyframes (true)
+        # @option args [String] :file_path
+        # @option args [Numeric|String] :file_size (1024)
+        # @option args [String] :file_status ('CLOSED')
+        # @option args [Hash] :metadata
+        # @option args [String] :storage_id
         # @param [Object]  options
         # @return [Hash]
         def asset_add_using_file_path(args = {}, options = {})
@@ -36,6 +42,7 @@ module Ubiquity
 
           file_path = _args[:file_path]
           raise ArgumentError, ':file_path is a required argument.' unless file_path
+
           file_dir  = File.dirname(file_path)
           if file_dir == '.'
             file_dir = ''
@@ -78,7 +85,7 @@ module Ubiquity
             raise 'Error Creating Format.' unless format_id
           end
 
-          file_set_id = args[:file_set_id]
+          file_set_id = _args[:file_set_id]
           unless file_set_id
             # Create Asset File Set
             asset_file_set_create_args = {
@@ -96,7 +103,7 @@ module Ubiquity
           end
 
           # Create Asset File
-          file_status                 = args[:file_status] || 'CLOSED'
+          file_status                 = _args[:file_status] || 'CLOSED'
           file_create_and_modify_time = Time.now.to_s
           asset_file_create_args      = {
               :asset_id           => asset_id,
