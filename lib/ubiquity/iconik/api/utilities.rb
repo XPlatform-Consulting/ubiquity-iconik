@@ -37,7 +37,14 @@ module Ubiquity
           file_path = _args[:file_path]
           raise ArgumentError, ':file_path is a required argument.' unless file_path
           file_dir  = File.dirname(file_path)
-          file_dir  = '' if file_dir == '.'
+          if file_dir == '.'
+            file_dir = ''
+          elsif file_dir.start_with?('./')
+            file_dir = file_dir[2..-1]
+          elsif file_dir.start_with?('/')
+            file_dir = file_dir[1..-1]
+          end
+
           file_name = File.basename(file_path)
 
           file_size = _args[:file_size] || 1024
