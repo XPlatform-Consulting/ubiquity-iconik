@@ -149,6 +149,9 @@ module  Ubiquity
           process_request(_request, options)
         end
 
+        # Create a new asset
+        #
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/assets/spec/#/default/post_v1_assets_
         def asset_create(args = { }, options = { })
           _request = Requests::BaseRequest.new(
             args,
@@ -431,20 +434,15 @@ module  Ubiquity
           http(:post, 'assets/v1/assets/reindex/')
         end
 
-        # def auth_login_ad(args = { }, options = { })
-        #
-        # end
-        #
-        # def auth_login_oauth(args = { }, options = { })
-        #
-        # end
-
+        # Login by using email and password
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/auth/spec/#/default/post_v1_auth_simple_login_
         def auth_login_simple(args = { }, options = { })
           _request = Requests::BaseRequest.new(
             args,
             {
               :http_path => 'auth/v1/auth/simple/login/',
               :http_method => :post,
+              :http_success_code => '201',
               :parameters => [
                 { :name => :email, :required => true },
                 { :name => :password, :required => true }
@@ -454,6 +452,8 @@ module  Ubiquity
           process_request(_request, options)
         end
 
+        # Check if auth token valid
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/auth/spec/#/default/get_v1_auth_token_
         # @deprecated
         def auth_token_get(args = { }, options = { })
           _token = args[:token] || token
@@ -461,6 +461,8 @@ module  Ubiquity
           http(:get, 'auth/v1/auth/token/', { :headers => { http_client.header_auth_key => _token } })
         end
 
+        # Refresh token
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/auth/spec/#/default/put_v1_auth_token_
         # @deprecated
         def auth_token_refresh(args = { }, options = { })
           http(:put, 'auth/v1/auth/token/')
