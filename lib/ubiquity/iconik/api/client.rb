@@ -130,6 +130,24 @@ module  Ubiquity
         # ############################################################################################################## #
         # @!group API Endpoints
 
+        # Start a job that creates sends an asset to Google Cloud Video Intelligence API
+        #
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/transcode/spec/
+        def asset_analyze(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+            args,
+            {
+              :http_path => 'transcode/v1/analyze/assets/#{path_arguments[:asset_id]}/',
+              :http_method => :post,
+              :http_success_code => '201',
+              :body => args,
+              :parameters => [
+                { :name => :asset_id, :aliases => [ :id ], :required => true, :send_in => :path },
+              ]
+            }.merge(options)
+          )
+          process_request(_request, options)
+        end
 
         def asset_create(args = { }, options = { })
           _request = Requests::BaseRequest.new(
