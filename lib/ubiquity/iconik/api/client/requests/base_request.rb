@@ -74,10 +74,10 @@ module Ubiquity
 
               processed_parameters[proper_parameter_name] = _k.merge(:value => value, :is_set => is_set)
 
-              unless is_set
-                missing_required_arguments << proper_parameter_name if _k[:required]
-              else
+              if is_set
                 args_out[proper_parameter_name] = value
+              else
+                missing_required_arguments << proper_parameter_name if _k[:required]
               end
 
               { :arguments_out => args_out, :processed_parameters => processed_parameters, :missing_required_arguments => missing_required_arguments }
