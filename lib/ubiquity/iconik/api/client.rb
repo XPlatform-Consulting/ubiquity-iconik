@@ -634,6 +634,25 @@ module  Ubiquity
           process_request(_request, options)
         end
 
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/search/spec/#/default/post_v1_search_
+        def search(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+            args,
+            {
+              :http_path => 'search/v1/search/',
+              :http_method => :post,
+              :http_success_code => '201',
+              :default_parameter_send_in_value => :query,
+              :body => args,
+              :parameters => [
+                { :name => :per_page, :send_in => :query },
+                { :name => :page, :send_in => :query }
+              ]
+            }.merge(options)
+          )
+          process_request(_request, options)
+        end
+
         def storage_create(args = { }, options = { })
           # http(:post, 'files/v1/storages/', args)
 
