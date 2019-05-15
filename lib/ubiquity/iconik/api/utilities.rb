@@ -168,6 +168,36 @@ module Ubiquity
           { :responses => responses }
         end
 
+        def metadata_schema_get(args = {}, options = {})
+          fields_get_response = metadata_fields_get
+          views_get_response = metadata_views_get
+          assets_category_get_response = metadata_categories_get(:type => :assets)
+          collections_category_get_response = metadata_categories_get(:type => :collections)
+          segments_category_get_response = metadata_categories_get(:type => :segments)
+          search_category_get_response = metadata_categories_get(:type => :search)
+          custom_actions_category_get_response = metadata_categories_get(:type => :custom_actions)
+
+          fields = fields_get_response['objects']
+          views = views_get_response['objects']
+          category_assets = assets_category_get_response['objects']
+          category_collections = collections_category_get_response['objects']
+          category_segments = segments_category_get_response['segments']
+          category_search = search_category_get_response['objects']
+          category_custom_actions = custom_actions_category_get_response['objects']
+
+          {
+            fields: fields,
+            views: views,
+            categories: {
+              assets: category_assets,
+              collections: category_collections,
+              segments: category_segments,
+              search: category_search,
+              custom_actions: category_custom_actions
+            }
+          }
+        end
+
       end
     end
   end
