@@ -153,7 +153,7 @@ module Ubiquity
             values_out = {}
             view_id    = view['id'] || view[:id] || default_view_id
             values     = view['metadata_values'] || view[:metadata_values]
-            values.echo do |k, v|
+            values.each do |k, v|
               values_out[k] = { :field_values => [v] }
             end
             args_out           = {
@@ -166,6 +166,102 @@ module Ubiquity
           end
 
           { :responses => responses }
+        end
+
+        def metadata_field_options_add(args = {}, options = {})
+          _args           = symbolize_keys(args, false)
+          field_name = _args[:field_name]
+          field_options   = _args[:field_options]
+          should_sort = _args.fetch(:should_sort, false)
+
+          new_field_options = metadata_field_options_process(field_options)
+
+          field_def = metadata_field_get(:field_name => field_name)
+
+          current_field_options = field_def.options
+          field_options_out = current_field_options + new_field_options
+          _field_options_out = symbolize_keys(field_options_out, false)
+
+          _field_options_out.uniq! { |v| v[:label] }
+          _field_options_out.sort! { |x, y| y[:label] <=> x[:label] } if should_sort
+          field_options_out = _field_options_out
+
+          args_out = {
+            :field_name => field_name,
+            :field_options => field_options_out
+          }
+
+          metadata_field_update(args_out, options)
+        end
+
+        def metadata_field_options_process(field_options)
+          _field_options = field_options.dup
+          case field_options
+          when Array
+            _field_options.map do |v|
+              if v.is_a?(Hash) && (v.has_key?(:label) || v.has_key?('label')) && (v.has_key?(:value) && v.has_key?('value'))
+                v
+              else
+                { :label => v, :value => v }
+              end
+            end
+          when Hash
+            _field_options.map { |k,v| { :label => k.to_s, :value => v.respond_to?(:to_s) ? v.to_s : v } }
+          end
+
+          _field_options
+        end
+
+        def metadata_field_options_replace(args = {}, options = {})
+          _args           = symbolize_keys(args, false)
+          field_name      = _args[:field_name]
+          field_options   = _args[:field_options]
+          should_sort = _args.fetch(:should_sort, false)
+
+          field_options_out = metadata_field_options_process(field_options)
+          if should_sort
+            _field_options_out = symbolize_keys(field_options_out, false)
+            _field_options_out.sort! {  |x,y| y[:label] <=> x[:label] }
+            field_options_out = _field_options_out
+          end
+
+          args_out = {
+            :field_name => field_name,
+            :options => field_options_out
+          }
+
+          metadata_field_update(args_out, options)
+        end
+
+
+        def metadata_schema_get(args = {}, options = {})
+          fields_get_response = metadata_fields_get
+          views_get_response = metadata_views_get
+          assets_category_get_response = metadata_object_type_categories_get(:type => :assets)
+          collections_category_get_response = metadata_object_type_categories_get(:type => :collections)
+          segments_category_get_response = metadata_object_type_categories_get(:type => :segments)
+          search_category_get_response = metadata_object_type_categories_get(:type => :search)
+          custom_actions_category_get_response = metadata_object_type_categories_get(:type => :custom_actions)
+
+          fields = fields_get_response['objects']
+          views = views_get_response['objects']
+          category_assets = assets_category_get_response['objects']
+          category_collections = collections_category_get_response['objects']
+          category_segments = segments_category_get_response['segments']
+          category_search = search_category_get_response['objects']
+          category_custom_actions = custom_actions_category_get_response['objects']
+
+          {
+              :fields   => fields,
+              :views    => views,
+              :categories => {
+                  :assets         => category_assets,
+                  :collections    => category_collections,
+                  :segments       => category_segments,
+                  :search         => category_search,
+                  :custom_actions => category_custom_actions
+              }
+          }
         end
 
       end
