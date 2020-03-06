@@ -413,6 +413,28 @@ module  Ubiquity
           process_request(_request, options)
         end
 
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/acls/spec/#/default/put_v1_acl__object_type__
+        def acls_set(args = { }, options = { } )
+          _request = Requests::BaseRequest.new(
+            args,
+            {
+              :http_path => 'acls/v1/acl/#{path_arguments[:object_type]}/',
+              :http_method => :put,
+              :http_success_code => '201',
+              :default_parameter_send_in_value => :body,
+              :parameters => [
+                { :name => :object_type, :required => true, :send_in => :path },
+                { :name => :object_keys, :required => true },
+                { :name => :group_ids },
+                { :name => :permissions },
+                { :name => :user_ids },
+                { :name => :permissions }
+              ]
+            }.merge(options)
+          )
+          process_request(_request, options)
+        end
+
         def assets_get(args = { }, options = { })
           _request = Requests::BaseRequest.new(
             args,
@@ -619,15 +641,74 @@ module  Ubiquity
           process_request(_request, options)
         end
 
+        def metadata_categories_get(args = { }, options = { })
+        _request = Requests::BaseRequest.new(
+          args,
+          {
+            :http_path => 'metadata/v1/#{path_arguments[:object_type]}/categories/',
+            :parameters => [
+              { :name => :object_type, :aliases => [ :type ], :send_in => :path },
+            ]
+          }.merge(options)
+        )
+        process_request(_request, options)
+        end
+
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/metadata/spec/#/default/post_v1_fields_
         def metadata_field_create(args = { }, options = { })
           _request = Requests::BaseRequest.new(
             args,
             {
-              :http_path => 'files/v1/storages/',
+              :http_path => 'metadata/v1/fields/',
               :http_method => :post,
               :http_success_code => '201',
               :body => args,
               :parameters => [
+              ]
+            }.merge(options)
+          )
+          process_request(_request, options)
+        end
+
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/metadata/spec/#/default/get_v1_fields_
+        def metadata_fields_get(args = { }, options = { })
+          http(:get, 'metadata/v1/fields/')
+        end
+
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/metadata/spec/#/default/post_v1_views_
+        def metadata_view_create(args = { }, optiosn = { })
+          _request = Requests::BaseRequest.new(
+              args,
+              {
+                  :http_path => 'metadata/v1/views/',
+                  :http_method => :post,
+                  :http_success_code => '201',
+                  :body => args,
+                  :parameters => [
+                  ]
+              }.merge(options)
+          )
+          process_request(_request, options)
+        end
+
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/metadata/spec/#/default/get_v1_views_
+        def metadata_views_get(args = { }, options = { })
+          http(:get, 'metadata/v1/views/')
+        end
+
+        # @see https://app.iconik.io/docs/apidocs.html?url=/docs/search/spec/#/default/post_v1_search_
+        def search(args = { }, options = { })
+          _request = Requests::BaseRequest.new(
+            args,
+            {
+              :http_path => 'search/v1/search/',
+              :http_method => :post,
+              :http_success_code => '201',
+              :default_parameter_send_in_value => :query,
+              :body => args,
+              :parameters => [
+                { :name => :per_page, :send_in => :query },
+                { :name => :page, :send_in => :query }
               ]
             }.merge(options)
           )
